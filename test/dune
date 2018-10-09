@@ -1,0 +1,8 @@
+(executable
+ (name test)
+ (modules test lexer))
+
+(rule
+ (targets lexer.ml)
+ (deps lexer.mll)
+ (action (run %{exe:../main.exe} -ml %{deps})))

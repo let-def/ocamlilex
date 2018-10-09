@@ -1,0 +1,10 @@
+(executable
+ (name main)
+ (modules common compact cset lexer lexgen main output 
+          outputbis parser syntax table))
+
+(ocamlyacc
+ (modules parser))
+
+(ocamllex
+ (modules lexer))
