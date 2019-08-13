@@ -29,6 +29,9 @@ type ctx = {
 let pr ctx = fprintf ctx.oc
 
 let output_auto_defs ctx =
+  pr ctx "\n";
+  pr ctx "let observed_pos = ref 0";
+  pr ctx "\n";
   if ctx.has_refill then begin
     pr ctx "\n";
     pr ctx "let rec __ocaml_lex_refill_buf lexbuf _buf _len _curr _last \
@@ -116,10 +119,11 @@ let output_action ctx pref mems r =
   output_memory_actions pref ctx.oc mems;
   match r with
   | Backtrack ->
-      pr ctx "%slet _curr = _last in\n\
+      pr ctx "%s(if _curr > !observed_pos then observed_pos := _curr);\n\
+              %slet _curr = _last in\n\
               %slexbuf.Lexing.lex_curr_pos <- _curr;\n\
               %slexbuf.Lexing.lex_last_pos <- _last;\n"
-        pref pref pref;
+        pref pref pref pref;
       if ctx.has_refill then
         pr ctx "%sk lexbuf %s\n" pref (last_action ctx)
       else
