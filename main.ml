@@ -45,11 +45,17 @@ let specs =
    "-vnum",  Arg.Unit print_version_num, " Print version number and exit";
   ]
 
-let _ =
+let () =
   Arg.parse
     specs
     (fun name -> source_name := Some name)
     usage
+
+let () =
+  if not !ml_automata then begin
+    prerr_endline "ocamlilex requires -ml flag, table output is not supported";
+    exit 1;
+  end
 
 
 let main () =
@@ -75,15 +81,9 @@ let main () =
   try
     let def = Parser.lexer_definition Lexer.main lexbuf in
     let (entries, transitions) = Lexgen.make_dfa def.entrypoints in
-    if !ml_automata then begin
-      Outputbis.output_lexdef
-        ic oc tr
-        def.header def.refill_handler entries transitions def.trailer
-    end else begin
-       let tables = Compact.compact_tables transitions in
-       Output.output_lexdef ic oc tr
-         def.header def.refill_handler tables entries def.trailer
-    end;
+    Outputbis.output_lexdef
+      ic oc tr
+      def.header def.refill_handler entries transitions def.trailer;
     close_in ic;
     close_out oc;
     Common.close_tracker tr;
@@ -113,10 +113,6 @@ let main () =
     | Lexgen.Memory_overflow ->
         Printf.fprintf stderr
           "File \"%s\":\n Position memory overflow, too many bindings\n"
-          source_name
-    | Output.Table_overflow ->
-        Printf.fprintf stderr
-          "File \"%s\":\ntransition table overflow, automaton is too big\n"
           source_name
     | _ ->
         Printexc.raise_with_backtrace exn bt
